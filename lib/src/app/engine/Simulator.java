@@ -91,8 +91,6 @@ public class Simulator {
                 processosBloqueados.add(processoNaCpu);
                 processoNaCpu = null;
             }
-        
-            //logica de preempção por quantum será controlada internamente pelos escalonadores round-robin e multiplas filas
         }
     }
 
