@@ -1,5 +1,10 @@
 package app.domain;
 
-public class ProcessType {
-    
+public enum ProcessType {
+    TEMPO_REAL,
+    INTERATIVO,
+    IO_BOUND,
+    MISTO,
+    CPU_BOUND,
+    BATCH
 }

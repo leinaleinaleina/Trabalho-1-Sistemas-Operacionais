@@ -1,5 +1,8 @@
 package app.domain;
 
-public class ProcessStatus {
-    
+public enum ProcessStatus {
+    PRONTO,
+    EXECUTANDO,
+    BLOQUEADO,
+    FINALIZADO
 }
