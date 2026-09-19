@@ -1,1 +1,1 @@
-# Trabalho-1-Sistemas-Operacionais
+# Simulador de processos da disciplina de Sistemas Operacionais
