@@ -2,8 +2,6 @@
 
 # Simulador de Escalonador de Processos da disciplina de Sistemas Operacionais
 
-**Integrantes:** Leina Yoshida e Thaynara Nascimento
-
 ## 1. Como executar
 //inserir passo a passo de como compilar e executar o simulador
 
@@ -48,3 +46,5 @@
 
 ## Link do repositório
 https://github.com/leinaleinaleina/Trabalho-1-Sistemas-Operacionais.git
+
+**Integrantes:** Leina Yoshida e Thaynara Nascimento
