@@ -25,7 +25,7 @@ Para compilar e executar o simulador de escalonamento, certifique-se de que poss
 
 ### 2.3 SDA (Scoring Dynamic Algorithm Based on Historical)
 
-O método proposto utiliza inteligência baseada em dados para otimizar as trocas de contexto e priorizar processos críticos de forma dinâmica.
+O método proposto utiliza inteligência baseada em dados (histórico) para otimizar as trocas de contexto e priorizar processos críticos de forma dinâmica.
 
 * **Critério de escolha:** A escolha do próximo processo é feita através de uma fórmula de pontuação recalculada a cada ciclo: `Pontuação = (PesoBase * Prioridade Invertida) + Tempo de Espera`. O processo com a maior pontuação ganha a CPU. Os Pesos Base são extraídos de forma dinâmica através da leitura de um CSV de decisões legadas.
 * **Uso de prioridade:** Sim, utiliza prioridade base. O valor original do processo (onde 1 é maior prioridade e 10 é menor) é invertido matematicamente para atuar como um fator multiplicador na fórmula de pontuação.
