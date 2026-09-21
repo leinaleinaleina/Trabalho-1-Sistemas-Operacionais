@@ -1,10 +1,13 @@
 package app.doc;
 
+import app.domain.Process;
+import java.util.List;
+
 public class GeneratorOutput {
     //relatório completo de um algoritmo, cumprindo aquele requisito da saída obrigatórias do simulador
     
     public static void printReport(String schedulerName, List<Process> executedProcesses, CalculateMetrics metrics, List<String> executionTimeline) {
-        System.out.println("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++\n");
+        System.out.println("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
         System.out.println("RELATÓRIO DE EXECUÇÃO: " + schedulerName.toUpperCase());
         System.out.println("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++\n");
 

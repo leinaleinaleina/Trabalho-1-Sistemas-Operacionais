@@ -21,6 +21,8 @@ public class Process {
     
 //métricas
     private int tempoPrimeiraExecucao;
+    private int tempoTotalEmIo;
+    private int primeiroTempoCpu;
     private int tempoConclusao;
 
     public Process(String pid, int tempoChegada, int tempoTotalCpu, int prioridade, ProcessType tipoProcesso, boolean temOperacaoES, double probabilidadeES, int mediaES, int duracaoES) {
@@ -42,6 +44,8 @@ public class Process {
 
         //inicializa métricas
         this.tempoPrimeiraExecucao = -1; //indica que ainda não foi para a cpu
+        this.tempoTotalEmIo = 0; //inicializa o tempo total em I/O
+        this.primeiroTempoCpu = -1; //indica que ainda não foi para a cpu
         this.tempoConclusao = -1; //indica que ainda não foi concluído
     }
 
@@ -97,16 +101,18 @@ public class Process {
     public int getTempoRestanteBloqueado() {
         return tempoRestanteBloqueado;
     }
-
+    
     public int getTempoPrimeiraExecucao() {
         return tempoPrimeiraExecucao;
     }
+    
+    public int getTempoTotalEmIo() { return tempoTotalEmIo; }
 
-    public int getTempoConclusao() {
-        return tempoConclusao;
-    }
+    public int getPrimeiroTempoCpu() { return primeiroTempoCpu; }
 
-//setters
+    public int getTempoConclusao() { return tempoConclusao; }
+    
+    //setters
     public void setEstadoAtual(ProcessStatus estadoAtual) {
         this.estadoAtual = estadoAtual;
     }
@@ -118,16 +124,16 @@ public class Process {
     public void setTempoPrimeiraExecucao(int tempoPrimeiraExecucao) {
         this.tempoPrimeiraExecucao = tempoPrimeiraExecucao;
     }
-    
-    public void setTempoConclusao(int tempoConclusao) {
-        this.tempoConclusao = tempoConclusao;
-    }
+
+    public void setPrimeiroTempoCpu(int tick) { this.primeiroTempoCpu = tick; }
+
+    public void setTempoConclusao(int tick) { this.tempoConclusao = tick; }
 
 //métodos de incremento e decremento de tempo
     public void incrementarTempoExecutandoCpu() {
         this.tempoExecutandoCpu++;
     }
-    
+
     public void incrementarTempoEspera() {
         this.tempoEspera++;
     }
@@ -137,9 +143,13 @@ public class Process {
             this.tempoRestanteBloqueado--;
         }
     }
-    
-//verifica se o processo atingiu o tempo necessário de execução na cpu para ser concluído
+        
+    //verifica se o processo atingiu o tempo necessário de execução na cpu para ser concluído
     public boolean concluiuExecucao() {
-        return this.tempoExecutandoCpu >= this.tempoTotalCpu;
+    return this.tempoExecutandoCpu >= this.tempoTotalCpu;
     }
+
+    // Incrementar quando estiver na lista de bloqueados
+    public void incrementarTempoTotalEmIo() { this.tempoTotalEmIo++; }
+
 }

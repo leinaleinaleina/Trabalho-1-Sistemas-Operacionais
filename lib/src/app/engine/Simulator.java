@@ -1,118 +1,110 @@
 package app.engine;
 
 import app.domain.Process;
-import app.domain.ProcessStatus;
 import app.schedulers.Scheduler;
-
 import java.util.ArrayList;
 import java.util.List;
 
-//controla o relógio global e garante que os estados dos processos são atualizados a cada unidade de tempo, transitando entre os estados definidos
 public class Simulator {
-    
-    private int relogioGlobal;
-    private List<Process> todosProcessos;
-    private List<Process> processosProntos;
-    private List<Process> processosBloqueados;
-    private Scheduler escalonadorAtual;
-    private Process processoNaCpu;
+    private int globalClock;
+    private List<Process> allProcesses;
+    private List<Process> readyQueue;
+    private List<Process> blockedQueue;
+    private List<Process> executedProcesses; 
+    private Scheduler scheduler;
 
-    public Simulator(List<Process> processosIniciais, Scheduler escalonador) {
-        this.todosProcessos = processosIniciais;
-        this.escalonadorAtual = escalonador;
-        this.relogioGlobal = 0;
-        this.processosProntos = new ArrayList<>();
-        this.processosBloqueados = new ArrayList<>();
+    private Process currentProcess;
+    private int contextSwitches;
+    private List<String> executionTimeline; // Histórico do Gantt
+
+    public Simulator(List<Process> initialProcesses, Scheduler scheduler) {
+        this.allProcesses = initialProcesses;
+        this.scheduler = scheduler;
+        this.globalClock = 0;
+        this.contextSwitches = 0;
+        this.readyQueue = new ArrayList<>();
+        this.blockedQueue = new ArrayList<>();
+        this.executedProcesses = new ArrayList<>();
+        this.executionTimeline = new ArrayList<>();
     }
 
-    public void executar() {
-        while(!todosFinalizados()) {
-            verificarChegadas();
-            atualizarBloqueados();
+    public void execute() {
+        while (executedProcesses.size() < allProcesses.size()) {
+            checkArrivals();
+            updateBlockedProcesses();
 
-            //se a cpu está livre, solicita ao escalonador uma decisão
-            if(processoNaCpu == null && !processosProntos.isEmpty()) {
-                processoNaCpu = escalonadorAtual.escolherProximoProcesso(processosProntos);
-                if(processoNaCpu != null) {
-                    processoNaCpu.setEstadoAtual(ProcessStatus.EXECUTANDO);
-                    processosProntos.remove(processoNaCpu);
+            // Pede ao escalonador para definir quem usa a CPU neste tick
+            Process nextProcess = scheduler.escolherProximoProcesso(readyQueue);
 
-                //registra o primeiro instante na cpu para o tempo de resposta
-                if(processoNaCpu.getTempoPrimeiraExecucao() == -1) {
-                    processoNaCpu.setTempoPrimeiraExecucao(relogioGlobal);
+            // Regista troca de contexto (mudança de um processo A para B)
+            if (currentProcess != null && nextProcess != null && !currentProcess.getPid().equals(nextProcess.getPid())) {
+                contextSwitches++;
+            }
+            currentProcess = nextProcess;
+
+            if (currentProcess != null) {
+                // Marca o tempo de resposta se for a primeira vez na CPU
+                if (currentProcess.getPrimeiroTempoCpu() == -1) {
+                    currentProcess.setPrimeiroTempoCpu(globalClock);
                 }
+
+                currentProcess.incrementarTempoExecutandoCpu();
+                executionTimeline.add(currentProcess.getPid()); // Alimenta o Gantt
+
+                // Verifica se o processo terminou
+                if (currentProcess.concluiuExecucao()) {
+                    currentProcess.setTempoConclusao(globalClock + 1);
+                    executedProcesses.add(currentProcess);
+                    readyQueue.remove(currentProcess);
+                    currentProcess = null; // Liberta a CPU
+                } 
+                // Simula E/S probabilística
+                else if (checkIoInterruption(currentProcess)) {
+                    currentProcess.setTempoRestanteBloqueado(currentProcess.getDuracaoES());
+                    blockedQueue.add(currentProcess);
+                    readyQueue.remove(currentProcess);
+                    currentProcess = null; // Liberta a CPU
+                }
+            } else {
+                executionTimeline.add(""); // CPU ociosa neste tick
             }
-        }
 
-        executarClicoCpu();
-        atualizarEsperaProcessosProntos();
-        relogioGlobal++;
-    }
-}
-
-    private void verificarChegadas() {
-        for (Process processo : todosProcessos) {
-            if (processo.getTempoChegada() == relogioGlobal && processo.getEstadoAtual() == ProcessStatus.PRONTO) {
-                processosProntos.add(processo);
-                escalonadorAtual.adicionarProcesso(processo);
-            }
-        }
-    }
-
-    private void atualizarBloqueados() {
-        List<Process> concluidosES = new ArrayList<>();
-        for (Process processo : processosBloqueados) {
-            processo.decrementarTempoRestanteBloqueado();
-            if (processo.getTempoRestanteBloqueado() <= 0) {
-                processo.setEstadoAtual(ProcessStatus.PRONTO);
-                concluidosES.add(processo);
-            }
-        }
-
-        for (Process processo : concluidosES) {
-            processosBloqueados.remove(processo);
-            processosProntos.add(processo);
-            escalonadorAtual.adicionarProcesso(processo);
+            globalClock++;
         }
     }
 
-    private void executarClicoCpu() {
-        if (processoNaCpu != null) {
-            processoNaCpu.incrementarTempoExecutandoCpu();
-
-            //verifica se o processo atingiu o tempo necessário de execução na cpu para ser concluído
-            if (processoNaCpu.concluiuExecucao()) {
-                processoNaCpu.setEstadoAtual(ProcessStatus.FINALIZADO);
-                processoNaCpu.setTempoConclusao(relogioGlobal + 1);
-                processoNaCpu = null;
-            } else if (verificarInterrupcaoPorES(processoNaCpu)) {
-                processoNaCpu.setEstadoAtual(ProcessStatus.BLOQUEADO);
-                processoNaCpu.setTempoRestanteBloqueado(processoNaCpu.getDuracaoES());
-                processosBloqueados.add(processoNaCpu);
-                processoNaCpu = null;
+    private void checkArrivals() {
+        for (Process p : allProcesses) {
+            if (p.getTempoChegada() == globalClock) {
+                readyQueue.add(p);
             }
         }
     }
 
-    private boolean verificarInterrupcaoPorES(Process processo) {
-        if (!processo.isTemOperacaoES()) return false;
-
-        //simulaçao probabilistica simples baseada na probabilidade de E/S definida no ficheiro
-        return Math.random() < processo.getProbabilidadeES();
-        }
-    
-    private void atualizarEsperaProcessosProntos() {
-        for (Process processo : processosProntos) {
-            processo.incrementarTempoEspera();
-        }
-    }
-
-    private boolean todosFinalizados() {
-        for (Process processo : todosProcessos) {
-            if (processo.getEstadoAtual() != ProcessStatus.FINALIZADO) {
-                return false;
+    private void updateBlockedProcesses() {
+        List<Process> returningFromIo = new ArrayList<>();
+        for (Process p : blockedQueue) {
+            p.decrementarTempoRestanteBloqueado();
+            p.incrementarTempoTotalEmIo(); // Essencial para a CalculateMetrics
+            
+            if (p.getTempoRestanteBloqueado() <= 0) {
+                returningFromIo.add(p);
             }
         }
-        return true;
+        
+        for (Process p : returningFromIo) {
+            blockedQueue.remove(p);
+            readyQueue.add(p);
+        }
     }
+
+    private boolean checkIoInterruption(Process p) {
+        if (!p.isTemOperacaoES()) return false;
+        return Math.random() < p.getProbabilidadeES();
+    }
+
+    // Getters utilizados pelo Main para gerar os relatórios
+    public List<Process> getExecutedProcesses() { return executedProcesses; }
+    public int getContextSwitches() { return contextSwitches; }
+    public List<String> getExecutionTimeline() { return executionTimeline; }
 }

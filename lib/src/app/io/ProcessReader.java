@@ -2,7 +2,6 @@ package app.io;
 
 import app.domain.Process;
 import app.domain.ProcessType;
-
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
@@ -18,23 +17,29 @@ public class ProcessReader {
         try (BufferedReader br = new BufferedReader(new FileReader(caminhoArquivo))) {
             String linha = br.readLine();
 
-            while ((linha = br.readLine()) != null) {
+        while ((linha = br.readLine()) != null) {
                 String[] colunas = linha.split(",");
 
-                if (colunas.length < 9) continue;
-                
+                if (colunas.length < 10) continue; 
+
                 String pid = colunas[0].trim();
-                int tempoChegada = Integer.parseInt(colunas[1].trim());
-                int tempoTotalCpu = Integer.parseInt(colunas[2].trim());
-                int prioridade = Integer.parseInt(colunas[3].trim());
-                ProcessType tipoProcesso = ProcessType.valueOf(colunas[4].trim().toUpperCase());
-                boolean temOperacaoES = Boolean.parseBoolean(colunas[5].trim());
-                double probabilidadeES = Double.parseDouble(colunas[6].trim());
-                int mediaES = Integer.parseInt(colunas[7].trim());
-                int duracaoES = Integer.parseInt(colunas[8].trim());
+
+                int tempoChegada = Integer.parseInt(colunas[2].trim());
+                int tempoTotalCpu = Integer.parseInt(colunas[3].trim());
+                int prioridade = Integer.parseInt(colunas[4].trim());
                 
-                Process processo = new Process(pid, tempoChegada, tempoTotalCpu, prioridade, tipoProcesso, temOperacaoES, probabilidadeES, mediaES, duracaoES);
-                processos.add(processo);
+                ProcessType tipoProcesso = ProcessType.valueOf(colunas[5].trim().toUpperCase());
+                
+                boolean temOperacaoES = colunas[6].trim().equals("1");
+                double probabilidadeES = Double.parseDouble(colunas[7].trim());
+                
+                int mediaES = (int) Double.parseDouble(colunas[8].trim());
+                int duracaoES = Integer.parseInt(colunas[9].trim());
+
+                Process p = new Process(pid, tempoChegada, tempoTotalCpu, prioridade,
+                tipoProcesso, temOperacaoES, probabilidadeES, mediaES, duracaoES);
+
+                processos.add(p);
             }
         } catch (IOException e) {
             System.err.println("Erro ao ler o ficheiro de processos: " + e.getMessage());

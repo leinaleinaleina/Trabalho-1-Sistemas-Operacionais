@@ -1,5 +1,9 @@
 package app.doc;
 
+import app.domain.Process;
+import java.util.List;
+
+
 public class CalculateMetrics {
 
     private List<Process> executedProcesses;

@@ -10,4 +10,6 @@ public interface Scheduler {
 
     //notifica o scheduler que um processo novo chegou e voltou da e/s
     void adicionarProcesso(Process processo);
+
+    public String getName();
 }

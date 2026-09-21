@@ -1,5 +1,11 @@
 package app.schedulers;
 
+import app.domain.Process;
+import java.util.List;
+import java.util.ArrayList;
+import java.util.Map;
+import java.util.HashMap;
+
 public class SchedulerMultipleQueues implements Scheduler {
 
     //quantidade de quantum do trabalho
@@ -21,22 +27,22 @@ public class SchedulerMultipleQueues implements Scheduler {
     private List<Process> promotedProcesses = new ArrayList<>();
 
     @Override
-    public Process getNextProcess(List<Process> readyQueue) {
-        if (readyQueue == null || readyQueue.isEmpty()) {
+    public Process escolherProximoProcesso(List<Process> filaProntos) {
+        if (filaProntos == null || filaProntos.isEmpty()) {
             currentProcess = null;
             tickCount = 0;
             return null;
         }
 
         //atualiza o tempo de espera dos processos 
-        updateStarvationTracker(readyQueue);
+        updateStarvationTracker(filaProntos);
 
         //classifica os processos nas 3 filas virtuais
         List<Process> fila1 = new ArrayList<>();
         List<Process> fila2 = new ArrayList<>();
         List<Process> fila3 = new ArrayList<>();
 
-        for (Process p : readyQueue) {
+        for (Process p : filaProntos) {
             String tipo = getTipoProcesso(p);
             
             if (tipo.equals("tempo_real") || tipo.equals("interativo")) {
@@ -66,10 +72,10 @@ public class SchedulerMultipleQueues implements Scheduler {
         //preempção e rotação
         if (currentProcess != null && nextProcess != null && !currentProcess.equals(nextProcess)) {
             // Se houve mudança de contexto por um processo de fila superior
-            if (readyQueue.contains(currentProcess)) {
+            if (filaProntos.contains(currentProcess)) {
                 //envia o processo interrompido pra o final da fila geral
-                readyQueue.remove(currentProcess);
-                readyQueue.add(currentProcess);
+                filaProntos.remove(currentProcess);
+                filaProntos.add(currentProcess);
             }
             currentProcess = nextProcess;
             currentQuantumLimit = nextQuantum;
@@ -82,15 +88,15 @@ public class SchedulerMultipleQueues implements Scheduler {
 
         //verifica se o quantum do processo atual expirou
         if (tickCount >= currentQuantumLimit) {
-            if (readyQueue.contains(currentProcess)) {
-                readyQueue.remove(currentProcess);
-                readyQueue.add(currentProcess);
+            if (filaProntos.contains(currentProcess)) {
+                filaProntos.remove(currentProcess);
+                filaProntos.add(currentProcess);
             }
             currentProcess = null;
             tickCount = 0;
             
             //recalcula o processo após rotacionar a fila
-            return getNextProcess(readyQueue);
+            return escolherProximoProcesso(filaProntos);
         }
 
         //atualiza o estado e retorna
