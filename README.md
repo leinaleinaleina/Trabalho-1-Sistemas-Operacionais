@@ -37,6 +37,7 @@ O método proposto utiliza inteligência baseada em dados para otimizar as troca
 
 ## 3. Resultados e Métricas (Tabelas e Gantt)
 
+```text
 **+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++**
 **RELATÓRIO DE EXECUÇÃO: ROUND-ROBIN**
 **+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++**
@@ -255,6 +256,7 @@ Tempo médio de retorno:       533,04
 Tempo médio de espera:        480,12
 Tempo médio de resposta:      109,60
 **+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++**
+```
 
 ## 4. Comparação Analítica
 *   **Qual algoritmo teve o menor tempo médio de espera?** 
